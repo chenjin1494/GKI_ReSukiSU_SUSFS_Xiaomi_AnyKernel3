@@ -200,7 +200,7 @@ on:
 
       # ==================== 可选配置 ====================
       version:
-        description: "自定义版本名 (可选)"
+        description: "完整内核版本字符串 (例如 5.15.194-android13-8-00019-gf4321180a397-ab15212794)"
         required: false
         type: string
       build_time:
@@ -208,6 +208,11 @@ on:
         required: false
         type: string
         default: ""
+      boot_os_patch_level:
+        description: "Boot 镜像头安全补丁日期（仅元数据；不代表源码包含对应安全修复）"
+        required: false
+        type: string
+        default: "2026-08-01"
 
       # ==================== 选项配置 ====================
       use_kpm:
@@ -402,6 +407,7 @@ jobs:
       ksu_variant: ${{ inputs.kernelsu_variant }}
       version: ${{ inputs.version || '' }}
       build_time: ${{ inputs.build_time || '' }}
+      boot_os_patch_level: ${{ inputs.boot_os_patch_level || '' }}
       use_zram: ${{ inputs.use_zram }}
       use_bbg: ${{ inputs.use_bbg }}
       use_net_enhance: ${{ inputs.use_net_enhance }}

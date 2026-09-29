@@ -25,6 +25,11 @@ on:
       os_patch_level:
         required: true
         type: string
+      boot_os_patch_level:
+        description: "Boot 镜像头安全补丁日期（仅设置元数据，不代表源码包含该日期后的修复）"
+        required: false
+        type: string
+        default: ""
 
       # ==================== KernelSU 配置 ====================
       ksu_variant:
@@ -1575,18 +1580,35 @@ jobs:
       - name: 构建 Boot 镜像 (Android 13+)
         if: inputs.android_version == 'android13' || inputs.android_version == 'android14' || inputs.android_version == 'android15' || inputs.android_version == 'android16'
         working-directory: bootimgs
+        env:
+          ANDROID_VERSION_INPUT: ${{ inputs.android_version }}
+          BOOT_OS_PATCH_LEVEL: ${{ inputs.boot_os_patch_level }}
         run: |
+          set -euo pipefail
           gzip -n -k -f -9 ./Image > ./Image.gz
 
-          $MKBOOTIMG --header_version 4 --kernel Image --output boot.img
+          MKBOOTIMG_OS_ARGS=()
+          if [[ -n "$BOOT_OS_PATCH_LEVEL" ]]; then
+            if [[ ! "$BOOT_OS_PATCH_LEVEL" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]] ||
+               [[ "$(date -u -d "$BOOT_OS_PATCH_LEVEL" +%F 2>/dev/null || true)" != "$BOOT_OS_PATCH_LEVEL" ]]; then
+              echo "::error::Boot 镜像安全补丁日期格式无效，要求真实日期 YYYY-MM-DD，例如 2026-08-01"
+              exit 1
+            fi
+            ANDROID_OS_VERSION="${ANDROID_VERSION_INPUT#android}"
+            MKBOOTIMG_OS_ARGS=(--os_version "${ANDROID_OS_VERSION}.0.0" --os_patch_level "$BOOT_OS_PATCH_LEVEL")
+            echo "设置 Boot 镜像头 OS version: ${ANDROID_OS_VERSION}.0.0"
+            echo "设置 Boot 镜像头 OS patch level: $BOOT_OS_PATCH_LEVEL"
+          fi
+
+          $MKBOOTIMG --header_version 4 --kernel Image "${MKBOOTIMG_OS_ARGS[@]}" --output boot.img
           $AVBTOOL add_hash_footer --partition_name boot --partition_size $((64 * 1024 * 1024)) --image boot.img --algorithm SHA256_RSA2048 --key $BOOT_SIGN_KEY_PATH
           cp ./boot.img ../${{ inputs.android_version }}-${{ inputs.kernel_version }}.${NAME_SUBLEVEL}-${{ inputs.os_patch_level }}-boot.img
 
-          $MKBOOTIMG --header_version 4 --kernel Image.gz --output boot-gz.img
+          $MKBOOTIMG --header_version 4 --kernel Image.gz "${MKBOOTIMG_OS_ARGS[@]}" --output boot-gz.img
           $AVBTOOL add_hash_footer --partition_name boot --partition_size $((64 * 1024 * 1024)) --image boot-gz.img --algorithm SHA256_RSA2048 --key $BOOT_SIGN_KEY_PATH
           cp ./boot-gz.img ../${{ inputs.android_version }}-${{ inputs.kernel_version }}.${NAME_SUBLEVEL}-${{ inputs.os_patch_level }}-boot-gz.img
 
-          $MKBOOTIMG --header_version 4 --kernel Image.lz4 --output boot-lz4.img
+          $MKBOOTIMG --header_version 4 --kernel Image.lz4 "${MKBOOTIMG_OS_ARGS[@]}" --output boot-lz4.img
           $AVBTOOL add_hash_footer --partition_name boot --partition_size $((64 * 1024 * 1024)) --image boot-lz4.img --algorithm SHA256_RSA2048 --key $BOOT_SIGN_KEY_PATH
           cp ./boot-lz4.img ../${{ inputs.android_version }}-${{ inputs.kernel_version }}.${NAME_SUBLEVEL}-${{ inputs.os_patch_level }}-boot-lz4.img
 

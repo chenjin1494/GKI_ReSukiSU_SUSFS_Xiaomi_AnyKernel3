@@ -170,8 +170,11 @@ A commit is a hash string representing the state of a repository at a certain po
 2. 进入 **Actions** 页面，选择对应内核版本的工作流
 3. 点击 **Run workflow**，按需填写参数：
    - `android_version` / `kernel_version` / `sub_level` / `os_patch_level`
+   - `version`：自定义内核版本；使用“自定义”工作流并选择 Android 13 / 5.15 / 子版本 194（2025-12）时，可填写 `5.15.194-android13-8-00019-gf4321180a397-ab15212794`
+   - `build_time`：内核自身编译时间，影响 `uname` 中的 `#1 SMP PREEMPT ...` 时间
+   - `boot_os_patch_level`：Boot 镜像头的 OS 安全补丁日期；自定义工作流默认 `2026-08-01`。这是元数据标记，不会应用或证明内核包含 2026-08 的安全补丁
    - `ksu_variant`：KernelSU 变体（SukiSU / ReSukiSU）
-   - 功能开关：`enable_susfs`、`use_zram`、`use_bbg`、`use_net_enhance`、`use_kpm`、`skip_incompatible` 等 
+   - 功能开关：`enable_susfs`、`use_zram`、`use_bbg`、`use_net_enhance`、`use_kpm`、`skip_incompatible` 等
 4. 构建完成后，在本次运行页面下载 **Artifacts**：
    - `AnyKernel3.zip` —— 卡刷包（推荐，配合自定义 Recovery 或 KSU 刷入）
    - `boot.img` / `boot-gz.img` / `boot-lz4.img` —— 每种压缩格式的 boot 镜像
