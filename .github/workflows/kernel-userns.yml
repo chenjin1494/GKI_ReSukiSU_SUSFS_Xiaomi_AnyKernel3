@@ -27,15 +27,15 @@ jobs:
       version: "5.15.194-android13-8-00019-gf4321180a397-ab15212794"
       build_time: "Wed Apr 15 01:39:41 UTC 2026"
       boot_os_patch_level: "2026-08-01"
-      use_zram: false
-      use_bbg: false
-      use_net_enhance: false
+      use_zram: true
+      use_bbg: true
+      use_net_enhance: true
       use_kpm: "disabled (关闭)"
-      use_rekernel: false
-      cve_2026_43499_patch: false
+      use_rekernel: true
+      cve_2026_43499_patch: true
       enable_susfs: true
       supp_op: false
-      droidspaces: "off"
-      artifact_upload_mode: "上传全部"
-      droidspaces_ntsync: false
+      droidspaces: "678"
+      artifact_upload_mode: "仅上传 AnyKernel3.zip"
+      droidspaces_ntsync: true
       skip_incompatible: false
