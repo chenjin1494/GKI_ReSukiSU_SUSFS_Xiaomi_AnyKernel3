@@ -1,0 +1,41 @@
+name: Android 13 5.15.194 USER_NS build
+
+permissions:
+  contents: write
+  actions: write
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - dev
+    paths:
+      - .github/workflows/kernel-userns.yml
+
+jobs:
+  build-userns:
+    if: ${{ github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[build-userns]') }}
+    uses: ./.github/workflows/build.yml
+    secrets: inherit
+    with:
+      android_version: android13
+      kernel_version: "5.15"
+      sub_level: "194"
+      os_patch_level: "2025-12"
+      revision: "r1"
+      ksu_variant: ReSukiSU
+      version: "5.15.194-android13-8-00019-gf4321180a397-ab15212794"
+      build_time: "Wed Apr 15 01:39:41 UTC 2026"
+      boot_os_patch_level: "2026-08-01"
+      use_zram: false
+      use_bbg: false
+      use_net_enhance: false
+      use_kpm: "disabled (关闭)"
+      use_rekernel: false
+      cve_2026_43499_patch: false
+      enable_susfs: true
+      supp_op: false
+      droidspaces: "off"
+      artifact_upload_mode: "上传全部"
+      droidspaces_ntsync: false
+      skip_incompatible: false

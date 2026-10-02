@@ -1180,6 +1180,22 @@ jobs:
       - name: 配置内核选项
         working-directory: ${{ env.KERNEL_ROOT }}
         run: |
+          if [[ "${{ inputs.android_version }}" == "android13" && "${{ inputs.kernel_version }}" == "5.15" ]]; then
+            if ! grep -RqsE --include='Kconfig*' '^[[:space:]]*config[[:space:]]+USER_NS([[:space:]]|$)' common; then
+              echo "::error::当前内核源码未定义 CONFIG_USER_NS"
+              exit 1
+            fi
+            if grep -q '^# CONFIG_USER_NS is not set$' "$DEFCONFIG"; then
+              sed -i 's/^# CONFIG_USER_NS is not set$/CONFIG_USER_NS=y/' "$DEFCONFIG"
+            elif grep -q '^CONFIG_USER_NS=' "$DEFCONFIG"; then
+              sed -i 's/^CONFIG_USER_NS=.*/CONFIG_USER_NS=y/' "$DEFCONFIG"
+            else
+              echo 'CONFIG_USER_NS=y' >> "$DEFCONFIG"
+            fi
+            grep -q '^CONFIG_USER_NS=y$' "$DEFCONFIG"
+            echo "已为 Android 13 / 5.15 启用 CONFIG_USER_NS"
+          fi
+
           cat >> "$DEFCONFIG" << 'EOF'
           CONFIG_KSU=y
           CONFIG_TMPFS_XATTR=y
